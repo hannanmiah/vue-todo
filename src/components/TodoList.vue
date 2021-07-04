@@ -7,12 +7,13 @@
 		<div class="flex flex-col space-y-2">
 			<input
 				v-model="todoText"
+				@keyup.enter="addTodo"
 				type="text"
+				:class="{ 'focus:border-red-500': !todoText }"
 				class="
 					border-2 border-gray-200
-					focus:outline-none
-					focus:border-0
-					focus:ring-2 focus:ring-green-500
+					focus:ring-0
+					focus:border-green-500
 					p-2
 				"
 				placeholder="Enter Todo Name here"
@@ -20,6 +21,7 @@
 			<button
 				@click="addTodo"
 				:disabled="todoText.length === 0"
+				:class="{ 'cursor-not-allowed': !todoText, 'opacity-80': !todoText }"
 				class="
 					bg-green-500
 					focus:outline-none
@@ -31,7 +33,7 @@
 				Add Todo
 			</button>
 		</div>
-		<ul class="flex flex-col space-y-2 mt-4">
+		<transition-group tag="ul" name="list" class="flex flex-col space-y-2 mt-4" appear>
 			<li
 				:key="todo.id"
 				v-for="todo in todos"
@@ -68,8 +70,11 @@
 					</button>
 				</div>
 			</li>
-		</ul>
-		<div v-if="isEmpty" class="mt-4 border-2 border-gray-200 p-10 text-center text-green-500">
+		</transition-group>
+		<div
+			v-if="isEmpty"
+			class="mt-4 border-2 border-gray-200 p-10 text-center text-green-500"
+		>
 			Todo List is Empty!
 		</div>
 	</div>
@@ -84,7 +89,8 @@
 	const isEmpty = computed(() => todos.value.length === 0);
 
 	function addTodo() {
-		todos.value.push({
+		if(!todoText.value) return;
+		todos.value.unshift({
 			id: new Date().getMilliseconds(),
 			name: todoText.value,
 			done: false,
@@ -105,5 +111,32 @@
 <style scoped>
 	.done {
 		text-decoration: line-through;
+	}
+
+	.list-enter-to {
+		opacity: 1;
+		transform: scale(1);
+	}
+	.list-enter-from {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+	.list-enter-active {
+		transition: all 0.3s ease;
+	}
+
+	.list-leave-from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	.list-leave-to {
+		opacity: 0;
+		transform: scale(0.6);
+	}
+	.list-leave-active {
+		transition: all 0.3s ease;
+	}
+	.list-move {
+		transition: all 0.3s ease;
 	}
 </style>    
