@@ -10,12 +10,7 @@
 				@keyup.enter="addTodo"
 				type="text"
 				:class="{ 'focus:border-red-500': !todoText }"
-				class="
-					border-2 border-gray-200
-					focus:ring-0
-					focus:border-green-500
-					p-2
-				"
+				class="border-2 border-gray-200 focus:ring-0 focus:border-green-500 p-2"
 				placeholder="Enter Todo Name here"
 			/>
 			<button
@@ -33,7 +28,14 @@
 				Add Todo
 			</button>
 		</div>
-		<transition-group tag="ul" name="list" class="flex flex-col space-y-2 mt-4" appear>
+		<transition-group
+			tag="ul"
+			name="list"
+			class="flex flex-col space-y-2 mt-4"
+			appear
+			v-if="!isEmpty"
+			mode="out-in"
+		>
 			<li
 				:key="todo.id"
 				v-for="todo in todos"
@@ -59,11 +61,14 @@
 							checked:border-transparent
 						"
 					/>
-					<button class="bg-yellow-500 p-2 focus:outline-none rounded">
+					<button
+						@click="setModal(todo, 'edit')"
+						class="bg-yellow-500 p-2 focus:outline-none rounded"
+					>
 						Edit
 					</button>
 					<button
-						@click="deleteTodo(todo)"
+						@click="setModal(todo, 'remove')"
 						class="bg-red-500 p-2 focus:outline-none active:bg-red-600 rounded"
 					>
 						Delete
@@ -72,24 +77,39 @@
 			</li>
 		</transition-group>
 		<div
-			v-if="isEmpty"
+			v-else
 			class="mt-4 border-2 border-gray-200 p-10 text-center text-green-500"
 		>
 			Todo List is Empty!
 		</div>
 	</div>
+	<transition name="modal">
+		<modal
+			v-if="modalOpen"
+			:todo="selectedTodo"
+			:mode="modalMode"
+			@toggle="toggleModal"
+			@updated="updateTodo"
+			@removed="deleteTodo"
+		>
+		</modal>
+	</transition>
 </template>
 
 <script setup>
 	import { ref, computed } from "vue";
+	import Modal from "./Modal.vue";
 
 	const todoText = ref("");
+	const selectedTodo = ref({});
+	const modalMode = ref("");
 
 	const todos = ref([]);
 	const isEmpty = computed(() => todos.value.length === 0);
+	const modalOpen = ref(false);
 
 	function addTodo() {
-		if(!todoText.value) return;
+		if (!todoText.value) return;
 		todos.value.unshift({
 			id: new Date().getMilliseconds(),
 			name: todoText.value,
@@ -104,7 +124,26 @@
 	}
 
 	function deleteTodo(todo) {
-		todos.value = todos.value.filter((tod) => tod != todo);
+		const index = todos.value.findIndex((el) => el.id === todo.id);
+		todos.value.splice(index,1);
+		toggleModal();
+	}
+
+	function toggleModal() {
+		modalOpen.value = !modalOpen.value;
+	}
+
+	function setModal(todo, mode) {
+		modalOpen.value = true;
+		modalMode.value = mode;
+		selectedTodo.value = todo;
+	}
+
+	function updateTodo(todo) {
+		const index = todos.value.findIndex((el) => el.id === todo.id);
+		todos.value[index] = todo;
+
+		toggleModal();
 	}
 </script>
 
@@ -138,5 +177,29 @@
 	}
 	.list-move {
 		transition: all 0.3s ease;
+	}
+
+	.modal-enter-from {
+		opacity: 0.5;
+		transform: scale(0.5);
+	}
+	.modal-enter-to {
+		opacity: 1;
+		transform: scale(1);
+	}
+	.modal-enter-active {
+		transition: all 0.3s ease-in;
+	}
+
+	.modal-leave-from {
+		opacity: 1;
+		transform: scale(1);
+	}
+	.modal-leave-to {
+		opacity: 0.5;
+		transform: scale(0.5);
+	}
+	.modal-leave-active {
+		transition: all 0.3s ease-out;
 	}
 </style>    
