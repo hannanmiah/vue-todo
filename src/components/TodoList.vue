@@ -13,6 +13,11 @@
 				class="border-2 border-gray-200 focus:ring-0 focus:border-green-500 p-2"
 				placeholder="Enter Todo Name here"
 			/>
+			<span
+				class="text-red-500"
+				v-if="validationError.exist && validationError.type === 'name'"
+				>{{ validationError.msg }}</span
+			>
 			<button
 				@click="addTodo"
 				:disabled="todoText.length === 0"
@@ -97,19 +102,32 @@
 </template>
 
 <script setup>
-	import { ref, computed } from "vue";
+	import { ref, computed, reactive } from "vue";
 	import Modal from "./Modal.vue";
 
 	const todoText = ref("");
 	const selectedTodo = ref({});
 	const modalMode = ref("");
+	const validationError = reactive({
+		type: "",
+		exist: false,
+		msg: "",
+	});
 
 	const todos = ref([]);
 	const isEmpty = computed(() => todos.value.length === 0);
 	const modalOpen = ref(false);
 
 	function addTodo() {
-		if (!todoText.value) return;
+		validationError.exist = false;
+		if (!todoText.value.trim()) return;
+		if (todos.value.some((el) => el.name === todoText.value.trim())) {
+			validationError.type = "name";
+			validationError.exist = true;
+			validationError.msg =
+				todoText.value + " already Exists! Try a different one!";
+			return;
+		}
 		todos.value.unshift({
 			id: new Date().getMilliseconds(),
 			name: todoText.value,
@@ -125,7 +143,7 @@
 
 	function deleteTodo(todo) {
 		const index = todos.value.findIndex((el) => el.id === todo.id);
-		todos.value.splice(index,1);
+		todos.value.splice(index, 1);
 		toggleModal();
 	}
 

@@ -22,12 +22,16 @@
 				</h1>
 				<h1 v-else>Default title</h1>
 			</div>
-			<div v-if="mode === 'edit'" class="p-4">
+			<div v-if="mode === 'edit'" class="p-4 flex flex-col space-y-2">
 				<input
 					v-model="selectedTodo.name"
 					type="text"
 					class="w-full border-2 border-gray-200 p-2"
 				/>
+				<div class="flex items-center space-x-2">
+					<input v-model="selectedTodo.done" type="checkbox" name="" id="done" class="rounded w-4 h-4 checked:text-green-500">
+					<label for="done">Mark as completed</label>
+				</div>
 			</div>
 			<div class="p-4 border-t-2 flex justify-end items-center space-x-2">
 				<button @click="emit('removed',selectedTodo)" v-if="mode === 'remove'" class="p-2 bg-red-500 rounded">
